@@ -1,4 +1,4 @@
-# Student Performance ML API
+# Student Performance Predictor
 
 A Django REST API that predicts student performance using machine learning based on study habits, previous scores, and other factors.
 
