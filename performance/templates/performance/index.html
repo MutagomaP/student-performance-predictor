@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Student Performance Predictor</title>
+    <style>
+      :root {
+        --bg1: #667eea;
+        --bg2: #764ba2;
+        --card: #ffffff;
+        --muted: #6b7280;
+        --text: #111827;
+        --border: #e5e7eb;
+        --shadow: 0 20px 60px rgba(0,0,0,0.25);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: var(--text);
+      }
+
+      .wrap { width: 100%; max-width: 720px; }
+      .card {
+        background: var(--card);
+        border-radius: 18px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 8px 0;
+        text-align: center;
+        font-size: 26px;
+        letter-spacing: -0.02em;
+        color: #4f46e5;
+      }
+      .subtitle {
+        margin: 0 0 20px 0;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      @media (min-width: 640px) {
+        .grid { grid-template-columns: 1fr 1fr; }
+        .span2 { grid-column: span 2; }
+      }
+
+      label {
+        display: block;
+        font-weight: 650;
+        font-size: 13px;
+        margin: 0 0 6px 0;
+      }
+      .hint {
+        font-weight: 450;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 15px;
+        outline: none;
+      }
+      input[type="number"]:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.20);
+      }
+
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+      .check input { width: 18px; height: 18px; }
+      .check span { font-size: 14px; }
+
+      button {
+        width: 100%;
+        margin-top: 12px;
+        padding: 14px 16px;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+        background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+        transition: transform 0.12s ease, filter 0.12s ease;
+      }
+      button:hover { transform: translateY(-1px); filter: brightness(1.02); }
+      button:active { transform: translateY(0); }
+      button[disabled] { opacity: 0.7; cursor: not-allowed; }
+
+      .panel {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 14px;
+        display: none;
+      }
+      .panel.show { display: block; }
+
+      .score {
+        font-size: 44px;
+        font-weight: 800;
+        color: #6d28d9;
+        letter-spacing: -0.03em;
+      }
+      .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: rgba(79, 70, 229, 0.10);
+        color: #4338ca;
+        border: 1px solid rgba(79, 70, 229, 0.20);
+      }
+
+      .error {
+        border-color: #f59e0b;
+        background: #fffbeb;
+        color: #92400e;
+      }
+      .error strong { color: #b45309; }
+      ul { margin: 10px 0 0 18px; padding: 0; }
+      li { margin: 6px 0; }
+
+      .footer {
+        margin-top: 14px;
+        text-align: center;
+        color: rgba(255,255,255,0.85);
+        font-size: 12px;
+      }
+      .footer a { color: white; text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Student Performance Predictor</h1>
+        <p class="subtitle">
+          Enter a realistic daily routine and academic history. This page calls your existing API at
+          <code>/api/predict/</code>.
+        </p>
+
+        <form id="predictionForm">
+          <div class="grid">
+            <div>
+              <label for="hours_studied">Hours studied (per day)</label>
+              <input type="number" id="hours_studied" min="1" max="24" value="8" required />
+              <div class="hint">Realistic max in API validation: 16 hours.</div>
+            </div>
+
+            <div>
+              <label for="sleep_hours">Sleep hours (per day)</label>
+              <input type="number" id="sleep_hours" min="1" max="24" value="7" required />
+              <div class="hint">API rejects &lt; 4 or &gt; 12.</div>
+            </div>
+
+            <div>
+              <label for="previous_scores">Previous scores (0–100)</label>
+              <input type="number" id="previous_scores" min="0" max="100" value="85" required />
+            </div>
+
+            <div>
+              <label for="sample_papers">Sample papers practiced</label>
+              <input type="number" id="sample_papers" min="0" max="20" value="5" required />
+              <div class="hint">API rejects &gt; 15 as unrealistic.</div>
+            </div>
+
+            <div class="span2">
+              <label>Extracurricular</label>
+              <label class="check" for="extracurricular">
+                <input type="checkbox" id="extracurricular" checked />
+                <span>Participates in extracurricular activities</span>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn">Predict performance</button>
+        </form>
+
+        <div class="panel" id="loadingPanel">
+          Predicting…
+        </div>
+
+        <div class="panel" id="resultPanel">
+          <div class="row">
+            <div>
+              <div class="pill">Predicted performance index</div>
+              <div class="score" id="score">--</div>
+            </div>
+            <div class="hint">0–100 (capped in API)</div>
+          </div>
+          <div id="feedbackWrap"></div>
+        </div>
+
+        <div class="panel error" id="errorPanel"></div>
+      </div>
+
+      <div class="footer">
+        API docs: <a href="/swagger/">Swagger</a> · <a href="/redoc/">ReDoc</a> · Health: <a href="/api/health/">/api/health/</a>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("predictionForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const loadingPanel = document.getElementById("loadingPanel");
+      const resultPanel = document.getElementById("resultPanel");
+      const errorPanel = document.getElementById("errorPanel");
+      const scoreEl = document.getElementById("score");
+      const feedbackWrap = document.getElementById("feedbackWrap");
+
+      function show(el, on) {
+        el.classList.toggle("show", !!on);
+      }
+
+      function setError(html) {
+        errorPanel.innerHTML = html;
+        show(errorPanel, true);
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        show(resultPanel, false);
+        show(errorPanel, false);
+        show(loadingPanel, true);
+        submitBtn.disabled = true;
+
+        const payload = {
+          hours_studied: parseInt(document.getElementById("hours_studied").value, 10),
+          previous_scores: parseInt(document.getElementById("previous_scores").value, 10),
+          extracurricular: document.getElementById("extracurricular").checked,
+          sleep_hours: parseInt(document.getElementById("sleep_hours").value, 10),
+          sample_papers: parseInt(document.getElementById("sample_papers").value, 10),
+        };
+
+        try {
+          const res = await fetch("/api/predict/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          show(loadingPanel, false);
+          submitBtn.disabled = false;
+
+          if (!res.ok) {
+            if (data && data.error) {
+              let html = `<strong>${data.error}</strong>`;
+              if (data.message) html += `<br/><br/>${data.message}`;
+              if (data.suggestion) html += `<br/><br/><em>${data.suggestion}</em>`;
+              setError(html);
+            } else {
+              setError(`Request failed: <strong>${res.status}</strong> ${res.statusText}`);
+            }
+            return;
+          }
+
+          scoreEl.textContent = (data.predicted_performance_index ?? "--").toString();
+
+          const feedback = Array.isArray(data.feedback) ? data.feedback : [];
+          if (feedback.length) {
+            feedbackWrap.innerHTML =
+              `<div style="margin-top: 14px; font-weight: 700;">Feedback</div>` +
+              `<ul>${feedback.map((f) => `<li>${f}</li>`).join("")}</ul>`;
+          } else {
+            feedbackWrap.innerHTML = "";
+          }
+
+          show(resultPanel, true);
+        } catch (err) {
+          show(loadingPanel, false);
+          submitBtn.disabled = false;
+          setError(`Connection error: <strong>${err.message}</strong>`);
+        }
+      });
+    </script>
+  </body>
+</html>
+

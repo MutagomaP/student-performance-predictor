@@ -1,0 +1,31 @@
+services:
+  # Web Service
+  - type: web
+    name: student-ml-api
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn student_ml.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: DATABASE_URL
+        fromDatabase:
+          name: student-ml-db
+          property: connectionString
+      - key: ALLOWED_HOSTS
+        sync: false
+
+databases:
+  # PostgreSQL Database
+  - name: student-ml-db
+    databaseName: student_ml_db
+    user: student_ml_user
+    plan: free
+    region: oregon

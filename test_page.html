@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .result .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #764ba2;
+        }
+        .error {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            line-height: 1.6;
+        }
+        .error.show {
+            display: block;
+        }
+        .error strong {
+            color: #d9534f;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loading.show {
+            display: block;
+        }
+        .api-url {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .api-url input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Performance Predictor</h1>
+        <p class="subtitle">Predict student performance using ML</p>
+        
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="hours_studied">Hours Studied (per day)</label>
+                <input type="number" id="hours_studied" name="hours_studied" min="1" max="24" value="8" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="previous_scores">Previous Scores (0-100)</label>
+                <input type="number" id="previous_scores" name="previous_scores" min="0" max="100" value="85" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-group">
+                    <input type="checkbox" id="extracurricular" name="extracurricular" checked>
+                    <span>Participates in Extracurricular Activities</span>
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="sleep_hours">Sleep Hours (per day)</label>
+                <input type="number" id="sleep_hours" name="sleep_hours" min="1" max="24" value="7" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="sample_papers">Sample Papers Practiced</label>
+                <input type="number" id="sample_papers" name="sample_papers" min="0" max="20" value="5" required>
+            </div>
+            
+            <button type="submit">Predict Performance</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <p>⏳ Predicting...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <h2>Predicted Performance Index</h2>
+            <div class="score" id="score">--</div>
+            <div id="feedback" style="margin-top: 20px; text-align: left;"></div>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="api-url">
+            <strong>API URL:</strong>
+            <input type="text" id="apiUrl" value="http://localhost:8000" placeholder="Enter your API URL">
+            <p style="margin-top: 10px; font-size: 11px; color: #666;">
+                Replace with your Render URL
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const result = document.getElementById('result');
+        const score = document.getElementById('score');
+        const error = document.getElementById('error');
+        const loading = document.getElementById('loading');
+        const apiUrlInput = document.getElementById('apiUrl');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Hide previous results
+            result.classList.remove('show');
+            error.classList.remove('show');
+            loading.classList.add('show');
+            
+            // Get form data
+            const data = {
+                hours_studied: parseInt(document.getElementById('hours_studied').value),
+                previous_scores: parseInt(document.getElementById('previous_scores').value),
+                extracurricular: document.getElementById('extracurricular').checked,
+                sleep_hours: parseInt(document.getElementById('sleep_hours').value),
+                sample_papers: parseInt(document.getElementById('sample_papers').value)
+            };
+            
+            try {
+                const apiUrl = apiUrlInput.value.trim();
+                const response = await fetch(`${apiUrl}/api/predict/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                loading.classList.remove('show');
+                
+                const resultData = await response.json();
+                
+                if (!response.ok) {
+                    // Handle validation errors (400) and other errors
+                    if (resultData.error) {
+                        let errorMessage = `<strong>${resultData.error}</strong>`;
+                        if (resultData.message) {
+                            errorMessage += `<br><br>${resultData.message}`;
+                        }
+                        if (resultData.suggestion) {
+                            errorMessage += `<br><br><em>${resultData.suggestion}</em>`;
+                        }
+                        error.innerHTML = errorMessage;
+                    } else {
+                        error.textContent = `Error: ${response.status} - ${response.statusText}`;
+                    }
+                    error.classList.add('show');
+                    return;
+                }
+                
+                // Success - display results
+                score.textContent = resultData.predicted_performance_index;
+                
+                // Display feedback
+                const feedbackDiv = document.getElementById('feedback');
+                if (resultData.feedback && resultData.feedback.length > 0) {
+                    feedbackDiv.innerHTML = '<strong>Feedback:</strong><ul style="margin-top: 10px;">' +
+                        resultData.feedback.map(f => `<li style="margin: 5px 0;">${f}</li>`).join('') +
+                        '</ul>';
+                } else {
+                    feedbackDiv.innerHTML = '';
+                }
+                
+                result.classList.add('show');
+                
+            } catch (err) {
+                loading.classList.remove('show');
+                error.textContent = `Connection Error: ${err.message}. Make sure your API URL is correct and the server is running.`;
+                error.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>
